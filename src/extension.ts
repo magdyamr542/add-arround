@@ -1,26 +1,96 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
-
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+import * as vscode from "vscode";
+const getSelectedOrUndefined = (range: vscode.Range) => {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    return undefined;
+  }
+  const selection = editor.selection;
+  if (!selection) {
+    return undefined;
+  }
+  if (range.end.compareTo(selection.end) < 0) {
+    return selection;
+  }
+  return undefined;
+};
+const getPositionsToSurround = ():
+  | {
+      start: vscode.Position;
+      end: vscode.Position;
+    }
+  | undefined => {
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    const cursorPosition = editor?.selection.start;
+    if (cursorPosition) {
+      const range = editor.document.getWordRangeAtPosition(cursorPosition);
+      if (range) {
+        const selected = getSelectedOrUndefined(range);
+        if (!selected) {
+          return range;
+        } else {
+          return selected;
+        }
+      } else {
+        return editor.selection;
+      }
+    }
+  }
+  return undefined;
+};
 export function activate(context: vscode.ExtensionContext) {
-	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "add-arround" is now active!');
+  let disposable = vscode.commands.registerCommand(
+    "add-arround.insertTemplate",
+    () => {
+      const positions = getPositionsToSurround();
+      if (!positions) {
+        return;
+      }
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('add-arround.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from add-arround!');
-	});
+      vscode.window
+        .showInputBox({
+          prompt: "Enter your template to surround the selected text with",
+          placeHolder: "",
+        })
+        .then((value) => {
+          if (!value) {
+            return;
+          }
+          vscode.window.activeTextEditor?.edit((editBuilder) => {
+            const { startText, endText } = getValue(value);
+            editBuilder.insert(positions.start, startText);
+            editBuilder.insert(positions.end, endText);
+          });
+        });
+    }
+  );
 
-	context.subscriptions.push(disposable);
+  context.subscriptions.push(disposable);
 }
 
+export const getValue = (toWrite: string) => {
+  let startText = "";
+  let endText = "";
+  const valueMap: Record<string, string> = {
+    "{": "}",
+    "[": "]",
+    "(": ")",
+    "<": ">",
+  };
+  for (const char of [...toWrite]) {
+    startText += char;
+    if (valueMap[char] !== undefined) {
+      const oppositeChar = valueMap[char];
+      endText = oppositeChar + endText;
+    } else {
+      endText = char + endText;
+    }
+  }
+
+  return {
+    startText,
+    endText,
+  };
+};
 // this method is called when your extension is deactivated
 export function deactivate() {}
