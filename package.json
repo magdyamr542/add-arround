@@ -1,7 +1,11 @@
 {
   "name": "add-arround",
   "displayName": "add-arround",
+  "publisher": "AmrMetwally",
   "description": "adds the given string arround the selected block",
+  "author": {
+    "name": "Amr metwally"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.61.0"
