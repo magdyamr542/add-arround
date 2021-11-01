@@ -2,11 +2,15 @@
   "name": "add-arround",
   "displayName": "add-arround",
   "publisher": "AmrMetwally",
+  "icon": "static/icon.png",
+  "repository": {
+    "url": "https://github.com/magdyamr542/add-arround"
+  },
   "description": "adds the given string arround the selected block",
   "author": {
     "name": "Amr metwally"
   },
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.61.0"
   },
